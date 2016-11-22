@@ -15,8 +15,8 @@ echo 'b '.$gsd_01_x." ".$gsd_01_y.'grumble';
 //**************************************Database*********************************//
 //	session_start();//wtf is this need to check it out
 
-$user_name="root";
-$password="YqW23777";
+$user_name="*******";
+$password="********";
 $datbase="Sound_Burst_Detection"
 $server="localhost";
 $conn=new mysqli($server,$user_name,$password,$database);
