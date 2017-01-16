@@ -1,0 +1,32 @@
+
+First
+avr-gcc -g -Os -mmcu=<mcu-type> -c <filename.c>
+e.g.
+avr-gcc -g -Os -mmcu=attiny4313 -c avr_code.c//compiles <filename.o> in same folder
+
+Second
+avr-gcc -g -mmcu=<mcu-type> -o <filename.elf> <filename.o>
+e.g
+avr-gcc -g -mmcu=attiny4313 -o avr_code.elf avr_code.o//creates a .elf file from .o file
+
+Third
+
+avr-objcopy -j .text -j .data -O ihex <filename.elf> <filename.hex>
+
+avr-objcopy -j .text -j .data -O ihex avr_code.elf avr_code.hex//extracts .hex file from .elf
+
+------------------------------------------------------------------------------------------------
+
+Upload To MCU
+
+//refer to file on pc avrisp with clock on pin3.ino
+//its has pinout for mega/not mega, for mega in comments at top section reset-53 MOSI-51 MISO-50 SCK-52
+//upload this to arduino and put in arduino as isp mode ??? then type in commands to upload to terminal
+//make sure your cd to same folder as the file or specify filepath at <filename.X> where 'X' is a variable
+avrdude -c <programmer-type> -b 19200 -P <port-of-programmer> -p <mcu-type> -v -U flash:w:<filename.hex>
+
+
+avrdude -c arduino -b 19200 -P /dev/ttyACM2 -p attiny4313 -v -U flash:w:avr_code.hex
+
+
+
