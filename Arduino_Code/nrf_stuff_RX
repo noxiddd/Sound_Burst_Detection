@@ -1,0 +1,55 @@
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+#include <string.h>
+
+RF24 radio(7, 8);
+
+const byte rxAddr[6] = "00001";
+
+void setup()
+{
+  pinMode(9,OUTPUT);
+  pinMode(2,OUTPUT);
+ // while (!Serial);
+  Serial.begin(9600);
+  
+  radio.begin();
+  radio.openReadingPipe(0, rxAddr);
+  
+  radio.startListening();
+ 
+}
+
+void loop()
+{
+  if (radio.available())
+  {
+    unsigned long text;
+    radio.read(&text, sizeof(unsigned long));
+    digitalWrite(2,HIGH); 
+    if (text==1)
+    {
+      digitalWrite(9,HIGH);  
+     Serial.println("Light");
+    //  delay(1000);
+    }
+    else
+    {
+       digitalWrite(9,LOW);  
+       Serial.println("OFF");
+    }
+    
+    Serial.println(text);
+  }
+  else
+  {
+    digitalWrite(9,LOW);  
+    digitalWrite(2,HIGH); 
+    delay(100);
+    
+     digitalWrite(2,LOW);
+     delay(100);
+     Serial.println("No Radio");
+   }
+}
