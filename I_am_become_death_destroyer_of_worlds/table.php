@@ -4,7 +4,7 @@ table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
     width: 100%;
-    color:brown;
+    color:cyan;
 }
 
 td, th {
@@ -19,16 +19,21 @@ th{
 }
 
 tr:nth-child(even) {
-    background-color: #d00dff;
+    background-color: #000000;
 }
 </style>
 <style style="text/css">
 body {
-  background-image: url("images/fina.png");
+  background-image: url("images/soundd.jpg");
   background-position: 50% 50%;
   background-repeat: repeat;
 }
 </style>
+
+<div class=buttons>
+<br><button id="back" class="float-left submit-button" >BACK</button></br>
+</div>
+
 <?php
 
 $servername = "localhost";
@@ -45,6 +50,8 @@ else
    {
        echo "<br><font color='green'>connection sucessful</font></br>";
    }
+
+   
 echo "<center><h1><font color='black'>GUNSHOT EVENTS</font></h1></center>";
 $sql = 'SELECT Event_ID,Event_Date,Event_Time,Dist_Mod_01,Dist_Mod_02,Dist_Mod_03 FROM Gunshots_Recorded';
 $result =$conn->query($sql);
@@ -59,6 +66,10 @@ if ($result->num_rows > 0) {
     echo "0 results";
 }   
 ?>
-
+<script type="text/javascript">
+    document.getElementById("back").onclick = function () {
+        location.href = "homepage.php";
+    };  
+</script>
 
 </html>
