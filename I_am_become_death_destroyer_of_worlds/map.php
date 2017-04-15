@@ -140,7 +140,8 @@ if ($result->num_rows > 0) {
          lng: x11,
          image: 'M01',
          title: 'M_01',
-         club: 'Module 01'
+         item: 'Module 01',
+         animation: google.maps.Animation.DROP
 
        },
        {
@@ -148,21 +149,24 @@ if ($result->num_rows > 0) {
          lng: x22,
          image: 'M02',
          title: 'M_02',
-         club: 'Module 02'
+         item: 'Module 02',
+         animation: google.maps.Animation.DROP
         },
           {
          lat: y33,
          lng: x33,
          image: 'M03',
          title: 'M_03',
-         club: 'Module 03'
+         item: 'Module 03',
+         animation: google.maps.Animation.DROP
         },
             {
          lat:y,
          lng: x,
          image: 'Gunshot',
          title: 'GunshotSource',
-         club: 'Roanokess'
+         item: 'Gun',
+         animation: google.maps.Animation.BOUNCE
         }
        ];
 
@@ -200,7 +204,7 @@ if ($result->num_rows > 0) {
 
 
      function addPlace( place ) {
-        var content = '<strong>Club name: ' + place.club + '</strong>';
+        var content = '<strong>Marker: ' + place.item + '</strong>';
         var infowindow = new google.maps.InfoWindow({
             content: content
         });
@@ -210,8 +214,8 @@ if ($result->num_rows > 0) {
 
         var marker = new google.maps.Marker({
             position: latlng,
-            title: place.title
-            //icon: images/fina.png
+            title: place.title,
+            animation: place.animation
         });
 
         marker.setMap( map );
