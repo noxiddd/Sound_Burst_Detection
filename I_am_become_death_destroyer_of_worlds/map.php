@@ -3,12 +3,12 @@
   <head>
     <style>
       #map {
-        height: 800px;
+        height: 2000px;
         width: 100%;
        }
     </style>
   </head>
-  <body>
+  <body bgcolor="#00abff">
 
   <div class=buttons>
 <br><button id="back" class="float-left submit-button" >BACK</button></br>
@@ -81,13 +81,16 @@ if ($result->num_rows > 0) {
         var A,B,C,D,E,F;//temp variables
         var x00,y00;
         var x,y;
-        var boundNorthLat=18.0054+latShift;
-        var boundSouthLat=18.0043000+latShift;
-        var boundWestLon=-76.7495+lonShift;
-        var boundEastLon=-76.7480+lonShift;
+        var boundNorthLat=18.0044;
+        var boundSouthLat=18.0039;
+        var boundWestLon=-76.7494;
+        var boundEastLon=boundWestLon+(0.00104512008/2);
+        var a,b,c;
 
+        //110680.43395607905 lentgh of a degree of lattiude in meters
+        //105902.12167549496  lentgh of a degree of longitude in meters
         
-        x11=longi-0.0003;
+        x11=boundWestLon;
         y11=boundNorthLat;
         x22=boundWestLon;
         y22=boundSouthLat;
@@ -101,7 +104,12 @@ if ($result->num_rows > 0) {
         r11=dist01/10000;//Math.sqrt( (x00-x11)*(x00-x11) + (y00-y11)*(y00-y11)  );
 	      r22=dist02/10000;//Math.sqrt( (x00-x22)*(x00-x22) + (y00-y22)*(y00-y22)  );
       	r33=dist03/10000;//Math.sqrt( (x00-x33)*(x00-x33) + (y00-y33)*(y00-y33)  );
-       
+
+       a=r11;
+       b=r22;
+       c=r33;
+
+
        console.log("r11: ");
        console.log(r11);  
        console.log("r22: ");
@@ -120,8 +128,11 @@ if ($result->num_rows > 0) {
         var UpperRight  = {lat: 18.00, lng: -77};
         var LowerLeft = {lat: 17.00, lng: -76.00};
         var LowerRight = {lat: 17.00, lng: -77.00};*/
-        y=(C*D-F*A)/(B*D-E*A);
-      	x=(C*E-F*B)/(A*E-D*B);
+        //y=(C*D-F*A)/(B*D-E*A);
+      	//x=(C*E-F*B)/(A*E-D*B);
+
+        y=boundSouthLat-0.4996393+(1-(b*b)+(a*a))/2;
+        x=boundWestLon+((r22*r22)-(r33*r33)+(00104*0.00104))/(2*(00104*0.00104));//boundWestLon-0.4994080+(1-( (c*c)+(a*a) ))/2;
 
         console.log("x: ");
        console.log(x);
@@ -141,6 +152,7 @@ if ($result->num_rows > 0) {
          image: 'M01',
          title: 'M_01',
          item: 'Module 01',
+         distToGun: r11*10000,//r11,
          animation: google.maps.Animation.DROP
 
        },
@@ -150,6 +162,7 @@ if ($result->num_rows > 0) {
          image: 'M02',
          title: 'M_02',
          item: 'Module 02',
+         distToGun: r22*10000,//r22,
          animation: google.maps.Animation.DROP
         },
           {
@@ -158,6 +171,7 @@ if ($result->num_rows > 0) {
          image: 'M03',
          title: 'M_03',
          item: 'Module 03',
+         distToGun: r33*10000,
          animation: google.maps.Animation.DROP
         },
             {
@@ -166,6 +180,7 @@ if ($result->num_rows > 0) {
          image: 'Gunshot',
          title: 'GunshotSource',
          item: 'Gun',
+         distToGun: 1,
          animation: google.maps.Animation.BOUNCE
         }
        ];
@@ -211,13 +226,21 @@ if ($result->num_rows > 0) {
 
         var image = '/js/markers/' + place.image + '.png';
         var latlng = new google.maps.LatLng( place.lat, place.lng );
-
+         
+        var circle = new google.maps.Circle({
+              map: map,
+              radius: place.distToGun,  
+              fillColor: '#AAFF00',
+              center: latlng,
+              strokeWeight: 2
+              });
+              circle.setMap(map);
         var marker = new google.maps.Marker({
             position: latlng,
             title: place.title,
             animation: place.animation
         });
-
+         
         marker.setMap( map );
 
         google.maps.event.addListener( marker, 'click', function() {
