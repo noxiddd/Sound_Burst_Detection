@@ -57,11 +57,11 @@ Serial.begin(57600);
   radio.setPALevel(RF24_PA_MAX);//trasnmit distance maximum, but uses more power
   pinMode(9, OUTPUT);
   pinMode(2, OUTPUT);
-  delay(15000);//wait for noise to go away
+ // delay(15000);//wait for noise to go away
 }
 
 float distance=0;
-
+char distance2[32] = {0};//distance from mod02
 void loop() 
 {
   
@@ -74,28 +74,36 @@ void loop()
   {
      digitalWrite(9,HIGH);
   }*/
+  digitalWrite(9,LOW);
   fht_input[sound_buffer_index]=analogRead(soundPin);
   //radio.write(&fht_input[sound_buffer_index], sizeof((double)fht_input[sound_buffer_index]));    
-  Serial.println(fht_input[sound_buffer_index]);
+  //Serial.println(fht_input[sound_buffer_index]);
   ///////////////////////////////
- /*if(fht_input[sound_buffer_index]>525)
- {
+  if(fht_input[sound_buffer_index]>560)
+   {
     if(fht_input[sound_buffer_index]>maxVolt)
       {
         maxVolt=fht_input[sound_buffer_index];
         maxVolt_time=millis();
       }
      distance=getDist(maxVolt);
-     if(distance<0)
+      if(distance<0)
        {
         distance=0;
        }
-   
-     //radio.write(&distance, sizeof(distance));    
-     //Serial.println(distance);
+       //distance=//round(distance*100)/100;
+       //itoa(distance,distance2,10);
+       dtostrf(distance, 4, 2, distance2);
+       //sprintf(distance2,"%lf", distance);
+      strcat (distance2," w");// module tWo
+     //distance2=distance
+     radio.write(&distance2, sizeof(distance2)); 
+     digitalWrite(9,HIGH);       
+     Serial.println(distance2);     
      if(millis()-maxVolt_time>50)
         maxVolt=1;
- }*/
+   }
+  // Serial.println(distance);     
 ///////////////////////////////////77
   //distance=getDist(fht_input[sound_buffer_index]); 
   
