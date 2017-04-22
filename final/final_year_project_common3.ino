@@ -1,4 +1,6 @@
-  
+#define LIN_OUT8 1//use the lin out function
+#define FHT_N 32 // set to 32 point fht///define before fht.h
+#include <FHT.h>  
 /*
 This code runs on the common devices(ones with only nrf24l01+)
 It sends data to main module via nrf with distance info
@@ -6,7 +8,7 @@ for now it will only detect impulse sounds(clap)
 
 
 */
-#include <FHT.h>
+
 
 //#include <fhtConfig.h>
 
@@ -57,68 +59,41 @@ Serial.begin(57600);
   radio.setPALevel(RF24_PA_MAX);//trasnmit distance maximum, but uses more power
   pinMode(9, OUTPUT);
   pinMode(2, OUTPUT);
+ 
+
+  //TIMSK0 = 0; // turn off timer0 for lower jitter
+ ADCSRA = 0xe5; // set the adc to free running mode
+ ADMUX = 0x40; // use adc0
+ DIDR0 = 0x01; // turn off the digital input for adc0
+
  // delay(15000);//wait for noise to go away
 }
-
+int reference_fht[16]={2,45,55,19,8,19,11,3,9,9,4,3,6,5,1,1};//specrtum against which detection test is done
 float distance=0;
 char distance3[32] = {0};//distance from mod03
 void loop() 
 {
   
-  /*if(sample_sound())
-  {
-    digitalWrite(9,LOW);
-    radio.write(&fht_input[sound_buffer_index-1], sizeof(fht_input[sound_buffer_index-1]));
-  }
-  else
-  {
-     digitalWrite(9,HIGH);
-  }*/
-  digitalWrite(9,LOW);
-  fht_input[sound_buffer_index]=analogRead(soundPin);
-  //radio.write(&fht_input[sound_buffer_index], sizeof((double)fht_input[sound_buffer_index]));    
-  //Serial.println(fht_input[sound_buffer_index]);
-  ///////////////////////////////
-  if(fht_input[sound_buffer_index]>560)
-   {
-    if(fht_input[sound_buffer_index]>maxVolt)
-      {
-        maxVolt=fht_input[sound_buffer_index];
-        maxVolt_time=millis();
-      }
+  
+  digitalWrite(9,HIGH);
+  digitalWrite(2,HIGH);
+  
+  if(gunshot_detected())
+   {//Serial.print("Here"); 
+    digitalWrite(2,LOW);
      distance=getDist(maxVolt);
       if(distance<0)
        {
         distance=0;
        }
-       
        dtostrf(distance, 4, 2, distance3);
-       //sprintf(distance2,"%lf", distance);
-      strcat (distance3," h");// module tHree
-     //distance2=distance 
-     radio.write(&distance3, sizeof(distance3));  
-     digitalWrite(9,HIGH);  
+      strcat (distance3," h");// module three
+     //radio.write(&distance2, sizeof(distance2)); 
+     digitalWrite(9,LOW);       
      Serial.println(distance3);     
      if(millis()-maxVolt_time>50)
-        maxVolt=1;
+        maxVolt=1;//reset maxvolt
    }
-  // Serial.println(distance);     
-///////////////////////////////////77
-  //distance=getDist(fht_input[sound_buffer_index]); 
-  
-  //radio.write(&distance, sizeof(double));
-   /*digitalWrite(2,LOW);
-   digitalWrite(9,LOW);
-   Serial.print('N');
-    //char* f="#";
-    digitalWrite(9,LOW);
-    digitalWrite(2,HIGH);
-    i=fht_input[sound_buffer_index];
-    
-   // radio.write(&peak, sizeof(int));
-   Serial.println(peak);
-     digitalWrite(9,HIGH);
-     digitalWrite(2,LOW);*/
  
 }
 
@@ -243,3 +218,81 @@ double getDist(int volts)//input adc values
   return dist;
   
 }
+
+ double correlation()
+  {
+    double corrxy=0;//correlation value
+    double corrxx=0;
+    double corryy=0;
+    double corr=0;//final correlation value
+    double mult=0;
+    for(int i=0;i<FHT_N/2;i++)
+    {
+       corrxy=(reference_fht[i]*fht_lin_out8[i])+corrxy;
+    } 
+    for(int j=0;j<FHT_N/2;j++)
+    {
+       corrxx=(reference_fht[j]*reference_fht[j])+corrxx;
+    }
+    for(int k=0;k<FHT_N/2;k++)
+    {
+       corryy=(fht_lin_out8[k]*fht_lin_out8[k])+corryy;
+    }
+    mult=corrxx*corryy;
+    corr=corrxy/sqrt(mult); 
+    //Serial.print("corr corrxy corrxx corryy mult");
+    //Serial.print(corr);Serial.print(" ");Serial.print(corrxy);Serial.print(" ");Serial.print(corrxx);
+    //Serial.print(" ");Serial.print(corryy);Serial.print(" ");Serial.println(mult);
+    return corr;//corryy;
+  }
+
+
+  int gunshot_detected()
+{
+  
+       cli();  // UDRE interrupt slows this way down on arduino1.0
+       for (int i = 0 ; i < FHT_N ; i++)
+       { // save 32 samples
+         while(!(ADCSRA & 0x10)); // wait for adc to be ready
+         ADCSRA = 0xf5; // restart adc
+         byte m = ADCL; // fetch adc data
+         byte j = ADCH;
+         int k = (j << 8) | m; // form into an int
+         k -= 0x0200; // form into a signed int
+         k <<= 6; // form into a 16b signed int
+         fht_input[i] = k; // put real data into bins
+         if(fht_input[i]>maxVolt)
+         {
+          maxVolt=fht_input[i];
+          maxVolt_time=millis();
+         }
+       }
+      
+       fht_window(); // window the data for better frequency response
+       fht_reorder(); // reorder the data before doing the fht
+       fht_run(); // process the data in the fht
+       //fht_mag_log(); // take the output of the fht
+       fht_mag_lin8();
+       sei();
+
+       
+       Serial.println("Start");
+         for(int i=0;i<FHT_N/2;i++)
+          {
+           Serial.print(i);
+           Serial.print(" "); 
+           Serial.println(fht_lin_out8[i]);
+          }
+       Serial.println("End");
+       
+      if(abs(correlation())>0.8)//threshold
+      {
+        return 1;//gunshot detected
+      }
+      else 
+      {
+        return 0;//no gunshot
+      }
+  
+}
+
